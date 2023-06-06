@@ -1,272 +1,277 @@
 #pragma once
-#include"unionfindset.hpp"
-#include<unordered_map>
-#include<iostream>
-#include<unordered_set>
-#include<list>
-#include<queue>
-using std::unordered_map;
-using std::unordered_set;
-using std::priority_queue;
+#include "unionfindset.hpp"
+#include <iostream>
+#include <list>
+#include <queue>
+#include <unordered_map>
+#include <unordered_set>
 using std::cout;
 using std::endl;
+using std::priority_queue;
+using std::unordered_map;
+using std::unordered_set;
 struct Edge;
-struct Node {//¶¥µã
-	char value = 0;
-	int in = 0;//Èë¶È
-	int out = 0;//³ö¶È
-	unordered_set<Edge*> edges;//´Ó¸Ã¶¥µã³ö·¢µÄ±ß
-	unordered_set<Node*> nodes;//¸Ã¶¥µãÓëÄÄÐ©¶¥µãÖ±½ÓÏàÁ¬
-	Node(char val) :value(val) {}
+struct Node {                    // ï¿½ï¿½ï¿½ï¿½
+    char value = 0;
+    int in = 0;                  // ï¿½ï¿½ï¿½
+    int out = 0;                 // ï¿½ï¿½ï¿½ï¿½
+    unordered_set<Edge *> edges; // ï¿½Ó¸Ã¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä±ï¿½
+    unordered_set<Node *> nodes; // ï¿½Ã¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð©ï¿½ï¿½ï¿½ï¿½Ö±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    Node(char val) :
+        value(val) {
+    }
 };
 struct Edge {
-	int weight = 0;//È¨Öµ
-	Node* from = nullptr;
-	Node* to = nullptr;
-	Edge(int w = 0) :weight(w) {}
+    int weight = 0; // È¨Öµ
+    Node *from = nullptr;
+    Node *to = nullptr;
+    Edge(int w = 0) :
+        weight(w) {
+    }
 };
 struct Graph {
-	unordered_set<Node*> nodes;
-	unordered_set<Edge*> edges;
-	~Graph() {
-		//¶Ônew³öÀ´µÄ¶¥µãºÍ±ß½øÐÐdelete
-		for (Node* n : nodes) {
-			delete n;
-		}
-		for (Edge* e : edges) {
-			delete e;
-		}
-		//×îºóµ÷ÓÃunordered_setµÄÎö¹¹º¯Êý
-	}
+    unordered_set<Node *> nodes;
+    unordered_set<Edge *> edges;
+    ~Graph() {
+        // ï¿½ï¿½newï¿½ï¿½ï¿½ï¿½ï¿½Ä¶ï¿½ï¿½ï¿½Í±ß½ï¿½ï¿½ï¿½delete
+        for (Node *n : nodes) {
+            delete n;
+        }
+        for (Edge *e : edges) {
+            delete e;
+        }
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½unordered_setï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    }
 };
 class graphAlgorithm {
 public:
-	static std::list<Node*> dfs(Node* start) {//Éî¶ÈÓÅÏÈ±éÀú
-		std::list<Node*> ans;
-		std::list<Node*> st;//Õ»
-		unordered_set<Node*> hashset;
-		st.push_back(start);
-		ans.push_back(start);
-		hashset.insert(start);
-		while (!st.empty()) {
-			Node* top = st.back();
-			st.pop_back();
-			for (Node* node : top->nodes) {
-				if (!hashset.count(node)) {
-					ans.push_back(node);
-					hashset.insert(node);
-					st.push_back(top);
-					st.push_back(node);
-					break;
-				}
-			}
-		}
-		return ans;
-	}
-	static std::list<Node*> bfs(Node* start) {//¹ã¶ÈÓÅÏÈ(¿í¶ÈÓÅÏÈ±éÀú)
-		std::list<Node*> ans;
-		std::list<Node*> queue;//¶ÓÁÐ
-		unordered_set<Node*> hashset;
-		ans.push_back(start);
-		queue.push_back(start);
-		hashset.insert(start);
-		while (!queue.empty()) {
-			Node* front = queue.front();
-			queue.pop_front();
-			for (Node* node : front->nodes) {
-				if (!hashset.count(node)) {
-					ans.push_back(node);
-					hashset.insert(node);
-					queue.push_back(node);
-				}
-			}
-		}
-		return ans;
-	}
-	static std::list<Node*> TopologicalSorting(const Graph& g) {//ÍØÆËÅÅÐò
-		std::list<Node*> ans;
-		unordered_map<Node*, int> inmap;//¼ÇÂ¼½ÚµãµÄÈë¶È
-		unordered_set<Node*> zeroset;//¼ÇÂ¼µ±Ç°Ò»ÂÖÈë¶ÈÎª0µÄµã
-		for (Node* node : g.nodes) {
-			if (node->in == 0) {
-				zeroset.insert(node);
-				ans.push_back(node);
-			}
-			inmap[node] = node->in;
-		}
-		while (!zeroset.empty()) {//±íÊ¾½Úµã¶¼ÒÑ¾­²Á³ý
-			unordered_set<Node*> nextzero;//¼ÇÂ¼ÐÂÒ»ÂÖÈë¶ÈÎª0µÄ½Úµã
-			for (Node* node : zeroset) {
-				for (Edge* e : node->edges) {
-					Node* to = e->to;
-					if (!--inmap[to]) {
-						nextzero.insert(to);
-						ans.push_back(to);
-					}
-				}
-			}
-			zeroset = std::move(nextzero);
-		}
-		return ans;
-	}
-	static std::list<Edge*> Kruskal(const Graph& g) {//KruskalËã·¨Éú³É×îÐ¡Éú³ÉÊ÷
-		auto compedge = [](Edge* left, Edge* right) {
-			return left->weight > right->weight;//Ð¡¶Ñ
-		};
-		std::list<Edge*> ans;
-		priority_queue<Edge*, std::vector<Edge*>, decltype(compedge)> heap(g.edges.begin(), g.edges.end(), compedge);
-		UnionFindSet<Node*> ufs(g.nodes.begin(), g.nodes.end());
-		while (!heap.empty()) {
-			auto e = heap.top();
-			heap.pop();
-			if (!ufs.IsSameSet(e->from, e->to)) {
-				ans.push_back(e);
-				ufs.Union(e->from, e->to);
-			}
-		}
-		return ans;
-	}
-	static std::list<Edge*> Prim(const Graph& g) {//PrimËã·¨Éú³É×îÐ¡Éú³ÉÊ÷
-		auto compedge = [](Edge* left, Edge* right) {
-			return left->weight > right->weight;//Ð¡¶Ñ
-		};
-		Node* start = *g.nodes.begin();//ÈÎÑ¡Ò»¸öÆðµã
-		std::list<Edge*> ans;
-		unordered_set<Node*> nodeset;//¼ÇÂ¼ÒÑ¾­Ñ¡¹ýµÄµã
-		nodeset.insert(start);
-		int nodesize = g.nodes.size();
-		priority_queue<Edge*, std::vector<Edge*>, decltype(compedge)> heap(compedge);
-		while (nodeset.size() != nodesize) {
-			for (Edge* e : start->edges) {
-				heap.push(e);
-			}
-			while (!heap.empty()) {
-				Edge* e = heap.top();
-				heap.pop();
-				if (!nodeset.count(e->to)) {
-					ans.push_back(e);
-					start = e->to;
-					nodeset.insert(e->to);
-					break;
-				}
-			}
-		}
-		return ans;
-	}
-
+    static std::list<Node *> dfs(Node *start) { // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È±ï¿½ï¿½ï¿½
+        std::list<Node *> ans;
+        std::list<Node *> st;                   // Õ»
+        unordered_set<Node *> hashset;
+        st.push_back(start);
+        ans.push_back(start);
+        hashset.insert(start);
+        while (!st.empty()) {
+            Node *top = st.back();
+            st.pop_back();
+            for (Node *node : top->nodes) {
+                if (!hashset.count(node)) {
+                    ans.push_back(node);
+                    hashset.insert(node);
+                    st.push_back(top);
+                    st.push_back(node);
+                    break;
+                }
+            }
+        }
+        return ans;
+    }
+    static std::list<Node *> bfs(Node *start) { // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È±ï¿½ï¿½ï¿½)
+        std::list<Node *> ans;
+        std::list<Node *> queue;                // ï¿½ï¿½ï¿½ï¿½
+        unordered_set<Node *> hashset;
+        ans.push_back(start);
+        queue.push_back(start);
+        hashset.insert(start);
+        while (!queue.empty()) {
+            Node *front = queue.front();
+            queue.pop_front();
+            for (Node *node : front->nodes) {
+                if (!hashset.count(node)) {
+                    ans.push_back(node);
+                    hashset.insert(node);
+                    queue.push_back(node);
+                }
+            }
+        }
+        return ans;
+    }
+    static std::list<Node *> TopologicalSorting(const Graph &g) { // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+        std::list<Node *> ans;
+        unordered_map<Node *, int> inmap;                         // ï¿½ï¿½Â¼ï¿½Úµï¿½ï¿½ï¿½ï¿½ï¿½
+        unordered_set<Node *> zeroset;                            // ï¿½ï¿½Â¼ï¿½ï¿½Ç°Ò»ï¿½ï¿½ï¿½ï¿½ï¿½Îª0ï¿½Äµï¿½
+        for (Node *node : g.nodes) {
+            if (node->in == 0) {
+                zeroset.insert(node);
+                ans.push_back(node);
+            }
+            inmap[node] = node->in;
+        }
+        while (!zeroset.empty()) {          // ï¿½ï¿½Ê¾ï¿½Úµã¶¼ï¿½Ñ¾ï¿½ï¿½ï¿½ï¿½ï¿½
+            unordered_set<Node *> nextzero; // ï¿½ï¿½Â¼ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½Îª0ï¿½Ä½Úµï¿½
+            for (Node *node : zeroset) {
+                for (Edge *e : node->edges) {
+                    Node *to = e->to;
+                    if (!--inmap[to]) {
+                        nextzero.insert(to);
+                        ans.push_back(to);
+                    }
+                }
+            }
+            zeroset = std::move(nextzero);
+        }
+        return ans;
+    }
+    static std::list<Edge *> Kruskal(const Graph &g) { // Kruskalï¿½ã·¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+        auto compedge = [](Edge *left, Edge *right) {
+            return left->weight > right->weight;       // Ð¡ï¿½ï¿½
+        };
+        std::list<Edge *> ans;
+        priority_queue<Edge *, std::vector<Edge *>, decltype(compedge)> heap(g.edges.begin(), g.edges.end(), compedge);
+        UnionFindSet<Node *> ufs(g.nodes.begin(), g.nodes.end());
+        while (!heap.empty()) {
+            auto e = heap.top();
+            heap.pop();
+            if (!ufs.IsSameSet(e->from, e->to)) {
+                ans.push_back(e);
+                ufs.Union(e->from, e->to);
+            }
+        }
+        return ans;
+    }
+    static std::list<Edge *> Prim(const Graph &g) { // Primï¿½ã·¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+        auto compedge = [](Edge *left, Edge *right) {
+            return left->weight > right->weight;    // Ð¡ï¿½ï¿½
+        };
+        Node *start = *g.nodes.begin();             // ï¿½ï¿½Ñ¡Ò»ï¿½ï¿½ï¿½ï¿½ï¿½
+        std::list<Edge *> ans;
+        unordered_set<Node *> nodeset;              // ï¿½ï¿½Â¼ï¿½Ñ¾ï¿½Ñ¡ï¿½ï¿½ï¿½Äµï¿½
+        nodeset.insert(start);
+        int nodesize = g.nodes.size();
+        priority_queue<Edge *, std::vector<Edge *>, decltype(compedge)> heap(compedge);
+        while (nodeset.size() != nodesize) {
+            for (Edge *e : start->edges) {
+                heap.push(e);
+            }
+            while (!heap.empty()) {
+                Edge *e = heap.top();
+                heap.pop();
+                if (!nodeset.count(e->to)) {
+                    ans.push_back(e);
+                    start = e->to;
+                    nodeset.insert(e->to);
+                    break;
+                }
+            }
+        }
+        return ans;
+    }
 };
-static Node* start = nullptr;//ÓÃÓÚ²âÊÔ
+static Node *start = nullptr; // ï¿½ï¿½ï¿½Ú²ï¿½ï¿½ï¿½
 class Solution {
 public:
-	//Éú³ÉµÄÍ¼¼ûgraph.png
-	static Graph CreateGraph() {
-		Graph ans;
-		Node* A = new Node('A');
-		Node* B = new Node('B');
-		Node* C = new Node('C');
-		Node* F = new Node('F');
-		Node* G = new Node('G');
-		start = B;
-		ans.nodes.insert(A);
-		ans.nodes.insert(B);
-		ans.nodes.insert(C);
-		ans.nodes.insert(F);
-		ans.nodes.insert(G);
-		Edge* ba = new Edge;
-		ba->from = B;
-		ba->to = A;
-		ans.edges.insert(ba);
-		Edge* bc = new Edge;
-		bc->from = B;
-		bc->to = C;
-		ans.edges.insert(bc);
-		Edge* bf = new Edge;
-		bf->from = B;
-		bf->to = F;
-		ans.edges.insert(bf);
-		Edge* ac = new Edge;
-		ac->from = A;
-		ac->to = C;
-		ans.edges.insert(ac);
-		Edge* cg = new Edge;
-		cg->from = C;
-		cg->to = G;
-		ans.edges.insert(cg);
-		Edge* fg = new Edge;
-		fg->from = F;
-		fg->to = G;
-		ans.edges.insert(fg);
-		B->edges.insert(ba);
-		B->edges.insert(bc);
-		B->edges.insert(bf);
-		A->edges.insert(ac);
-		F->edges.insert(fg);
-		C->edges.insert(cg);
-		B->nodes.insert(A);
-		B->nodes.insert(C);
-		B->nodes.insert(F);
-		A->nodes.insert(C);
-		F->nodes.insert(G);
-		C->nodes.insert(G);
-		B->out = 3;
-		A->in = 1;
-		A->out = 1;
-		C->in = 2;
-		C->out = 1;
-		F->in = 1;
-		F->out = 1;
-		G->in = 2;
-		return ans;
-	}
-	static Graph graphForMinimumSpanningTree() {
-		std::vector<std::vector<int>> g = { {'A','B',2},{'A','C',1},{'A','D',5},{'B','D',5},{'D','C',3},{'B','E',4},{'C','E',3},{'D','E',2} };
-		Graph ans;
-		unordered_map<int, Node*> nodemap;
-		for (auto& data : g) {
-			for (int i = 0; i < 2; i++) {
-				if (!nodemap.count(data[i])) {
-					nodemap[data[i]] = new Node(data[i]);
-					ans.nodes.insert(nodemap[data[i]]);
-				}
-			}
-			Node* from = nodemap[data[0]], * to = nodemap[data[1]];
-			Edge* efrom = new Edge(data[2]);
-			Edge* eto = new Edge(data[2]);
-			efrom->from = from, efrom->to = to;
-			eto->from = to, eto->to = from;
-			from->edges.insert(efrom);
-			from->nodes.insert(to);
-			from->in++, from->out++;
-			to->edges.insert(eto);
-			to->in++, to->out++;
-			to->nodes.insert(from);
-			ans.edges.insert(efrom);
-			ans.edges.insert(eto);
-		}
-		return ans;
-	}
-	static void DisplayNodes(const std::list<Node*>& nodes) {
-		for (auto node : nodes) {
-			cout << node->value << ' ';
-		}
-		cout << endl;
-	}
-	static void TestKruskalAndPrim() {
-		auto ret = Solution::graphForMinimumSpanningTree();
-		auto edges = graphAlgorithm::Prim(ret);
-		for (auto e : edges) {
-			cout << "È¨Öµ:" << e->weight << endl;
-			cout << "fromµã:" << e->from->value << " || " << "toµã" << e->to->value << endl;
-			cout << "========================" << endl;
-		}
-		cout << endl;
+    // ï¿½ï¿½ï¿½Éµï¿½Í¼ï¿½ï¿½graph.png
+    static Graph CreateGraph() {
+        Graph ans;
+        Node *A = new Node('A');
+        Node *B = new Node('B');
+        Node *C = new Node('C');
+        Node *F = new Node('F');
+        Node *G = new Node('G');
+        start = B;
+        ans.nodes.insert(A);
+        ans.nodes.insert(B);
+        ans.nodes.insert(C);
+        ans.nodes.insert(F);
+        ans.nodes.insert(G);
+        Edge *ba = new Edge;
+        ba->from = B;
+        ba->to = A;
+        ans.edges.insert(ba);
+        Edge *bc = new Edge;
+        bc->from = B;
+        bc->to = C;
+        ans.edges.insert(bc);
+        Edge *bf = new Edge;
+        bf->from = B;
+        bf->to = F;
+        ans.edges.insert(bf);
+        Edge *ac = new Edge;
+        ac->from = A;
+        ac->to = C;
+        ans.edges.insert(ac);
+        Edge *cg = new Edge;
+        cg->from = C;
+        cg->to = G;
+        ans.edges.insert(cg);
+        Edge *fg = new Edge;
+        fg->from = F;
+        fg->to = G;
+        ans.edges.insert(fg);
+        B->edges.insert(ba);
+        B->edges.insert(bc);
+        B->edges.insert(bf);
+        A->edges.insert(ac);
+        F->edges.insert(fg);
+        C->edges.insert(cg);
+        B->nodes.insert(A);
+        B->nodes.insert(C);
+        B->nodes.insert(F);
+        A->nodes.insert(C);
+        F->nodes.insert(G);
+        C->nodes.insert(G);
+        B->out = 3;
+        A->in = 1;
+        A->out = 1;
+        C->in = 2;
+        C->out = 1;
+        F->in = 1;
+        F->out = 1;
+        G->in = 2;
+        return ans;
+    }
+    static Graph graphForMinimumSpanningTree() {
+        std::vector<std::vector<int>> g = {{'A', 'B', 2}, {'A', 'C', 1}, {'A', 'D', 5}, {'B', 'D', 5}, {'D', 'C', 3}, {'B', 'E', 4}, {'C', 'E', 3}, {'D', 'E', 2}};
+        Graph ans;
+        unordered_map<int, Node *> nodemap;
+        for (auto &data : g) {
+            for (int i = 0; i < 2; i++) {
+                if (!nodemap.count(data[i])) {
+                    nodemap[data[i]] = new Node(data[i]);
+                    ans.nodes.insert(nodemap[data[i]]);
+                }
+            }
+            Node *from = nodemap[data[0]], *to = nodemap[data[1]];
+            Edge *efrom = new Edge(data[2]);
+            Edge *eto = new Edge(data[2]);
+            efrom->from = from, efrom->to = to;
+            eto->from = to, eto->to = from;
+            from->edges.insert(efrom);
+            from->nodes.insert(to);
+            from->in++, from->out++;
+            to->edges.insert(eto);
+            to->in++, to->out++;
+            to->nodes.insert(from);
+            ans.edges.insert(efrom);
+            ans.edges.insert(eto);
+        }
+        return ans;
+    }
+    static void DisplayNodes(const std::list<Node *> &nodes) {
+        for (auto node : nodes) {
+            cout << node->value << ' ';
+        }
+        cout << endl;
+    }
+    static void TestKruskalAndPrim() {
+        auto ret = Solution::graphForMinimumSpanningTree();
+        auto edges = graphAlgorithm::Prim(ret);
+        for (auto e : edges) {
+            cout << "È¨Öµ:" << e->weight << endl;
+            cout << "fromï¿½ï¿½:" << e->from->value << " || "
+                 << "toï¿½ï¿½" << e->to->value << endl;
+            cout << "========================" << endl;
+        }
+        cout << endl;
 
-		edges = graphAlgorithm::Kruskal(ret);
-		for (auto e : edges) {
-			cout << "È¨Öµ:" << e->weight << endl;
-			cout << "fromµã:" << e->from->value << " || " << "toµã" << e->to->value << endl;
-			cout << "========================" << endl;
-		}
-		cout << endl;
-	}
+        edges = graphAlgorithm::Kruskal(ret);
+        for (auto e : edges) {
+            cout << "È¨Öµ:" << e->weight << endl;
+            cout << "fromï¿½ï¿½:" << e->from->value << " || "
+                 << "toï¿½ï¿½" << e->to->value << endl;
+            cout << "========================" << endl;
+        }
+        cout << endl;
+    }
 };

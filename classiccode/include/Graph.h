@@ -5,18 +5,20 @@
 #include <queue>
 #include <unordered_map>
 #include <unordered_set>
+#include <vector>
 using std::cout;
 using std::endl;
 using std::priority_queue;
 using std::unordered_map;
 using std::unordered_set;
+using std::vector;
 struct Edge;
-struct Node {                    // ����
+struct Node {                    // 顶点
     char value = 0;
-    int in = 0;                  // ���
-    int out = 0;                 // ����
-    unordered_set<Edge *> edges; // �Ӹö�������ı�
-    unordered_set<Node *> nodes; // �ö�������Щ����ֱ������
+    int in = 0;                  // 入度
+    int out = 0;                 // 出度
+    unordered_set<Edge *> edges; // 边集
+    unordered_set<Node *> nodes; // 点集
     Node(char val) :
         value(val) {
     }
@@ -25,29 +27,19 @@ struct Edge {
     int weight = 0; // Ȩֵ
     Node *from = nullptr;
     Node *to = nullptr;
-    Edge(int w = 0) :
-        weight(w) {
+    Edge(int w = 0, Node *f = nullptr, Node *t = nullptr) :
+        weight(w), from(f), to(t) {
     }
 };
 struct Graph {
     unordered_set<Node *> nodes;
     unordered_set<Edge *> edges;
-    ~Graph() {
-        // ��new�����Ķ���ͱ߽���delete
-        for (Node *n : nodes) {
-            delete n;
-        }
-        for (Edge *e : edges) {
-            delete e;
-        }
-        // ������unordered_set����������
-    }
 };
 class graphAlgorithm {
 public:
-    static std::list<Node *> dfs(Node *start) { // ������ȱ���
+    static std::list<Node *> dfs(Node *start) { // 深度
         std::list<Node *> ans;
-        std::list<Node *> st;                   // ջ
+        std::list<Node *> st;
         unordered_set<Node *> hashset;
         st.push_back(start);
         ans.push_back(start);
@@ -67,9 +59,9 @@ public:
         }
         return ans;
     }
-    static std::list<Node *> bfs(Node *start) { // �������(�������ȱ���)
+    static std::list<Node *> bfs(Node *start) { // 广度(宽度)
         std::list<Node *> ans;
-        std::list<Node *> queue;                // ����
+        std::list<Node *> queue;
         unordered_set<Node *> hashset;
         ans.push_back(start);
         queue.push_back(start);
@@ -87,10 +79,10 @@ public:
         }
         return ans;
     }
-    static std::list<Node *> TopologicalSorting(const Graph &g) { // ��������
+    static std::list<Node *> TopologicalSorting(const Graph &g) { // 拓扑排序
         std::list<Node *> ans;
-        unordered_map<Node *, int> inmap;                         // ��¼�ڵ�����
-        unordered_set<Node *> zeroset;                            // ��¼��ǰһ�����Ϊ0�ĵ�
+        unordered_map<Node *, int> inmap;                         // 节点入度
+        unordered_set<Node *> zeroset;                            // 记录入度为0的节点
         for (Node *node : g.nodes) {
             if (node->in == 0) {
                 zeroset.insert(node);
@@ -98,8 +90,8 @@ public:
             }
             inmap[node] = node->in;
         }
-        while (!zeroset.empty()) {          // ��ʾ�ڵ㶼�Ѿ�����
-            unordered_set<Node *> nextzero; // ��¼��һ�����Ϊ0�Ľڵ�
+        while (!zeroset.empty()) {
+            unordered_set<Node *> nextzero;
             for (Node *node : zeroset) {
                 for (Edge *e : node->edges) {
                     Node *to = e->to;
@@ -113,9 +105,9 @@ public:
         }
         return ans;
     }
-    static std::list<Edge *> Kruskal(const Graph &g) { // Kruskal�㷨������С������
+    static std::list<Edge *> Kruskal(const Graph &g) { // Kruskal算法最小生成树
         auto compedge = [](Edge *left, Edge *right) {
-            return left->weight > right->weight;       // С��
+            return left->weight > right->weight;       // 小堆
         };
         std::list<Edge *> ans;
         priority_queue<Edge *, std::vector<Edge *>, decltype(compedge)> heap(g.edges.begin(), g.edges.end(), compedge);
@@ -130,13 +122,13 @@ public:
         }
         return ans;
     }
-    static std::list<Edge *> Prim(const Graph &g) { // Prim�㷨������С������
+    static std::list<Edge *> Prim(const Graph &g) { // Prim算法最小生成树
         auto compedge = [](Edge *left, Edge *right) {
-            return left->weight > right->weight;    // С��
+            return left->weight > right->weight;    // 小堆
         };
-        Node *start = *g.nodes.begin();             // ��ѡһ�����
+        Node *start = *g.nodes.begin();             // 任取一点
         std::list<Edge *> ans;
-        unordered_set<Node *> nodeset;              // ��¼�Ѿ�ѡ���ĵ�
+        unordered_set<Node *> nodeset;              // 已经遍历过的点
         nodeset.insert(start);
         int nodesize = g.nodes.size();
         priority_queue<Edge *, std::vector<Edge *>, decltype(compedge)> heap(compedge);
@@ -158,68 +150,43 @@ public:
         return ans;
     }
 };
-static Node *start = nullptr; // ���ڲ���
+static Node *start = nullptr; // 用于测试def和bds
 class Solution {
 public:
-    // ���ɵ�ͼ��graph.png
-    static Graph CreateGraph() {
+    static Graph UseVectorGraph(const vector<vector<int>> &matrix) {
+        //[0]表示from点,[1]表示to点,[2]表示权值
         Graph ans;
-        Node *A = new Node('A');
-        Node *B = new Node('B');
-        Node *C = new Node('C');
-        Node *F = new Node('F');
-        Node *G = new Node('G');
-        start = B;
-        ans.nodes.insert(A);
-        ans.nodes.insert(B);
-        ans.nodes.insert(C);
-        ans.nodes.insert(F);
-        ans.nodes.insert(G);
-        Edge *ba = new Edge;
-        ba->from = B;
-        ba->to = A;
-        ans.edges.insert(ba);
-        Edge *bc = new Edge;
-        bc->from = B;
-        bc->to = C;
-        ans.edges.insert(bc);
-        Edge *bf = new Edge;
-        bf->from = B;
-        bf->to = F;
-        ans.edges.insert(bf);
-        Edge *ac = new Edge;
-        ac->from = A;
-        ac->to = C;
-        ans.edges.insert(ac);
-        Edge *cg = new Edge;
-        cg->from = C;
-        cg->to = G;
-        ans.edges.insert(cg);
-        Edge *fg = new Edge;
-        fg->from = F;
-        fg->to = G;
-        ans.edges.insert(fg);
-        B->edges.insert(ba);
-        B->edges.insert(bc);
-        B->edges.insert(bf);
-        A->edges.insert(ac);
-        F->edges.insert(fg);
-        C->edges.insert(cg);
-        B->nodes.insert(A);
-        B->nodes.insert(C);
-        B->nodes.insert(F);
-        A->nodes.insert(C);
-        F->nodes.insert(G);
-        C->nodes.insert(G);
-        B->out = 3;
-        A->in = 1;
-        A->out = 1;
-        C->in = 2;
-        C->out = 1;
-        F->in = 1;
-        F->out = 1;
-        G->in = 2;
+        unordered_map<char, Node *> hashmap; // 记录点
+        for (auto &nums : matrix) {
+            char from = nums[0], to = nums[1];
+            int weight = nums[2];
+            if (!hashmap.count(from)) {
+                hashmap[from] = new Node(from);
+                ans.nodes.insert(hashmap[from]);
+            }
+            if (!hashmap.count(to)) {
+                hashmap[to] = new Node(to);
+                ans.nodes.insert(hashmap[to]);
+            }
+            Edge *e = new Edge(0, hashmap[from], hashmap[to]);
+            ans.edges.insert(e);
+            hashmap[from]->edges.insert(e);
+            hashmap[from]->nodes.insert(hashmap[to]);
+            hashmap[from]->out++;
+            hashmap[to]->in++;
+        }
         return ans;
+    }
+    static Graph CreateGraph() {
+        vector<vector<int>> matrix = {{'B', 'A', 0}, {'B', 'C', 0}, {'B', 'F', 0}, {'A', 'C', 0}, {'C', 'G', 0}, {'F', 'G', 0}};
+        Graph g = UseVectorGraph(matrix);
+        for (Node *node : g.nodes) {
+            if (node->value == 'B') {
+                start = node;
+                break;
+            }
+        }
+        return g;
     }
     static Graph graphForMinimumSpanningTree() {
         std::vector<std::vector<int>> g = {{'A', 'B', 2}, {'A', 'C', 1}, {'A', 'D', 5}, {'B', 'D', 5}, {'D', 'C', 3}, {'B', 'E', 4}, {'C', 'E', 3}, {'D', 'E', 2}};
@@ -253,23 +220,23 @@ public:
             cout << node->value << ' ';
         }
         cout << endl;
+        fflush(stdout);
     }
     static void TestKruskalAndPrim() {
         auto ret = Solution::graphForMinimumSpanningTree();
         auto edges = graphAlgorithm::Prim(ret);
         for (auto e : edges) {
-            cout << "Ȩֵ:" << e->weight << endl;
-            cout << "from��:" << e->from->value << " || "
-                 << "to��" << e->to->value << endl;
+            cout << "权值:" << e->weight << endl;
+            cout << "from点:" << e->from->value << " || "
+                 << "to点" << e->to->value << endl;
             cout << "========================" << endl;
         }
         cout << endl;
-
         edges = graphAlgorithm::Kruskal(ret);
         for (auto e : edges) {
-            cout << "Ȩֵ:" << e->weight << endl;
-            cout << "from��:" << e->from->value << " || "
-                 << "to��" << e->to->value << endl;
+            cout << "权值:" << e->weight << endl;
+            cout << "from点:" << e->from->value << " || "
+                 << "to点" << e->to->value << endl;
             cout << "========================" << endl;
         }
         cout << endl;

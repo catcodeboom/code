@@ -30,7 +30,7 @@ namespace httpdemo {
         }
 
     public:
-        static void TestHttpServer(short port = 8080) {
+        static void DisPlayHttpRequest(short port = 8080) {
             tcpsocket::TcpSocket server;
             int listen = server.Socket();
             server.Bind(port);
@@ -49,6 +49,48 @@ namespace httpdemo {
                 http_res += "HTTP/1.0 200 ok\n";           // 状态行
                 http_res += "Content-type:text/plain\n\n"; // text/plain表示普通文本
                 http_res += "hello world";                 // 正文
+                send(sock, http_res.c_str(), http_res.size(), 0);
+                close(sock);
+            }
+        }
+        static void Http301(short port = 8080) { // 进行永久重定向
+            tcpsocket::TcpSocket server;
+            int listen = server.Socket();
+            server.Bind(port);
+            server.Listen();
+            while (1) {
+                int sock = server.Accept();
+                if (sock < 0) {
+                    continue;
+                }
+                char buf[BUFSIZ];
+                ssize_t len = read(sock, buf, BUFSIZ);
+                buf[len] = 0;
+                cout << "读取到http请求" << endl;
+                string http_res;
+                http_res += "HTTP/1.1 301 Moved Permanently\n";    // 状态行
+                http_res += "Location: https://www.baidu.com\n\n"; // text/plain表示普通文本
+                send(sock, http_res.c_str(), http_res.size(), 0);
+                close(sock);
+            }
+        }
+        static void Http307(short port = 8080) { // 进行临时重定向
+            tcpsocket::TcpSocket server;
+            int listen = server.Socket();
+            server.Bind(port);
+            server.Listen();
+            while (1) {
+                int sock = server.Accept();
+                if (sock < 0) {
+                    continue;
+                }
+                char buf[BUFSIZ];
+                ssize_t len = read(sock, buf, BUFSIZ);
+                buf[len] = 0;
+                cout << "读取到http请求" << endl;
+                string http_res;
+                http_res += "HTTP/1.1 307 Temporary Redirect\n";   // 状态行
+                http_res += "Location: https://www.baidu.com\n\n"; // text/plain表示普通文本
                 send(sock, http_res.c_str(), http_res.size(), 0);
                 close(sock);
             }

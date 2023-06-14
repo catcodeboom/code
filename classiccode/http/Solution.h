@@ -46,9 +46,54 @@ namespace httpdemo {
                 cout << "读取到的http请求为:" << endl;
                 cout << buf << "==============================" << endl;
                 string http_res;
-                http_res += "HTTP/1.0 200 ok\n";           // 状态行
-                http_res += "Content-type:text/plain\n\n"; // text/plain表示普通文本
-                http_res += "hello world";                 // 正文
+                http_res += "HTTP/1.0 200 ok\n";         // 状态行
+                http_res += "Content-type:text/plain\n"; // text/plain表示普通文本
+                http_res += "Set-Cookie:passwd=123456&&id=10\n\n";
+                http_res += "hello world";               // 正文
+                send(sock, http_res.c_str(), http_res.size(), 0);
+                close(sock);
+            }
+        }
+        static void GET_POST(short port = 8080) {
+            tcpsocket::TcpSocket server;
+            int listen = server.Socket();
+            server.Bind(port);
+            server.Listen();
+            while (1) {
+                int sock = server.Accept();
+                if (sock < 0) {
+                    continue;
+                }
+                char buf[BUFSIZ];
+                ssize_t len = read(sock, buf, BUFSIZ);
+                buf[len] = 0;
+                cout << "读取到的http请求为:" << endl;
+                cout << buf << "==============================" << endl;
+                string http_res;
+                http_res += "HTTP/1.0 200 ok\n"; // 状态行
+                http_res += "Content-Type: text/html\n";
+                std::ifstream ifs("index.html", std::ios::in);
+                if (ifs.is_open() == false) {
+                    cout << "打开文件失败" << endl;
+                }
+                string temp;
+                string html;
+                while (std::getline(ifs, temp)) {
+                    html += temp;
+                }
+                // cout << "==============================" << endl;
+                // cout << "html的内容是:" << endl;
+                // cout << html << endl;
+                // cout << "==============================" << endl;
+                http_res += "Content-Length:";
+                http_res += std::to_string(html.size());
+                http_res += "\n\n";
+                http_res += html;
+                ifs.close();
+                // cout << "==============================" << endl;
+                // cout << "发送出去的http响应是" << endl;
+                // cout << http_res << endl;
+                // cout << "==============================" << endl;
                 send(sock, http_res.c_str(), http_res.size(), 0);
                 close(sock);
             }

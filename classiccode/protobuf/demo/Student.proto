@@ -1,0 +1,6 @@
+syntax="proto3";
+package slowstep;
+message student{
+    string name=1;
+    int32 age=2;
+}

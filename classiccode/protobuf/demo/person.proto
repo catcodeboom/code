@@ -1,0 +1,7 @@
+syntax="proto3";
+message person{
+    oneof ContactInformation{
+        string qq=1;
+        string wechat=2;
+    }
+}

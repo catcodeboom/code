@@ -1,0 +1,5 @@
+syntax="proto3";
+message bird{
+    string name=1;
+    map<string,string> remark=2;//key备注的标题,value为备注的数据
+}

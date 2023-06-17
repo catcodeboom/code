@@ -25,6 +25,8 @@ namespace tcpsocket {
             return m_listensock;
         }
         void Bind(short port) {
+            int reuse = 1;
+            setsockopt(m_listensock, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse));
             struct sockaddr_in s_addr;
             memset(&s_addr, 0, sizeof(s_addr));
             s_addr.sin_family = AF_INET;
@@ -224,7 +226,9 @@ namespace tcpsocket {
         static void ClientSendMessage(string ip, short port) { // 客户端
             TcpClient client;
             client.Socket();
-            client.Connect(ip, port);
+            if (!client.Connect(ip, port)) {
+                return;
+            }
             WriteAndReadForClient(client);
         }
     };

@@ -1,93 +1,30 @@
 #pragma once
-#include "FreeList.h"
-#include "ObjectPool.hpp"
-#include <mutex>
-using std::mutex;
-// #include "ObjectPool.hpp"
-#ifdef _WIN64
-typedef unsigned long long PAGE_ID;
-#elif _WIN32
-typedef unsigned int PAGE_ID;
-#elif __x86_64__
-typedef unsigned long long PAGE_ID;
-#elif __unix__
-typedef unsigned int PAGE_ID;
-#else
-typedef unsigned long long PAGE_ID;
-#endif
-// ç®¡ç†ä»¥é¡µä¸ºå•ä½çš„å¤§å—å†…å­˜
-struct Span {
-    PAGE_ID _pageId = 0; // å¤§å—å†…å­˜èµ·å§‹é¡µçš„é¡µå·
-    size_t _n = 0;       // é¡µçš„æ•°é‡
-
-    Span *_next = nullptr; // åŒé“¾è¡¨ç»“æ„
-    Span *_prev = nullptr;
-
-    size_t _objSize = 0;       // åˆ‡å¥½çš„å°å¯¹è±¡çš„å¤§å°
-    size_t _useCount = 0;      // åˆ‡å¥½çš„å°å—å†…å­˜ï¼Œè¢«åˆ†é…ç»™thread cacheçš„è®¡æ•°
-    void *_freeList = nullptr; // åˆ‡å¥½çš„å°å—å†…å­˜çš„è‡ªç”±é“¾è¡¨
-
-    bool _isUse = false; // æ˜¯å¦åœ¨è¢«ä½¿ç”¨
+#include<assert.h>
+#include<mutex>
+#include"ObjectPool.hpp"
+struct Span {//¹ÜÀíÒÔÒ³Îªµ¥Î»µÄÄÚ´æ
+	size_t pageid = 0;//ÄÚ´æµÄÆğÊ¼Ò³ºÅ
+	size_t n = 0;//Ò³µÄÊıÁ¿
+	Span* next = nullptr;
+	Span* prev = nullptr;
+	void* freelist = nullptr;//¹ÜÀíÇĞ·ÖºÃµÄÄÚ´æµÄ×ÔÓÉÁ´±í
+	size_t usecount = 0;//ÇĞºÃµÄÄÚ´æ,¸øThreadCacheÊ¹ÓÃµÄÊıÁ¿
+	bool isuse = false;//ÊÇ·ñ±»CentralCacheÊ¹ÓÃ
+	size_t objsize=0;//¶ÔÏóµÄ´óĞ¡
 };
-
-// å¸¦å¤´åŒå‘å¾ªç¯é“¾è¡¨
-class SpanList {
+class SpanList {//CentralCacheÖĞµÄÃ¿Ò»¸öÔªËØÊÇSpanList
 public:
-    SpanList() {
-        //_head = new Span;
-        _head = _spanPool.New();
-        _head->_next = _head;
-        _head->_prev = _head;
-    }
-    Span *Begin() {
-        return _head->_next;
-    }
-    Span *End() {
-        return _head;
-    }
-    bool Empty() {
-        return _head == _head->_next;
-    }
-    void PushFront(Span *span) {
-        Insert(Begin(), span);
-    }
-    Span *PopFront() {
-        Span *front = _head->_next;
-        Erase(front);
-        return front;
-    }
-    void Insert(Span *pos, Span *newSpan) {
-        assert(pos);
-        assert(newSpan);
-
-        Span *prev = pos->_prev;
-
-        prev->_next = newSpan;
-        newSpan->_prev = prev;
-
-        newSpan->_next = pos;
-        pos->_prev = newSpan;
-    }
-    void Erase(Span *pos) {
-        assert(pos);
-        assert(pos != _head); // ä¸èƒ½åˆ é™¤å“¨å…µä½çš„å¤´ç»“ç‚¹
-
-        // if (pos == _head)
-        //{
-        //	int x = 0;
-        // }
-
-        Span *prev = pos->_prev;
-        Span *next = pos->_next;
-
-        prev->_next = next;
-        next->_prev = prev;
-    }
-
+	SpanList();
+	void Insert(Span* pos, Span* span);//posÎ»ÖÃÖ®Ç°²åÈëÒ»¸öÔªËØ
+	void Erase(Span* pos);//É¾³ıposÎ»ÖÃµÄÔªËØ
+	Span* Begin();
+	Span* End();
+	void PushFront(Span* span);//Í·²åÒ»¸ö¿ç¶È
+	bool Empty();
+	Span* PopFront();
 private:
-    Span *_head;
-    static ObjectPool<Span> _spanPool;
-
+	Span* head = nullptr;
+	static ObjectPool<Span> spanpool;
 public:
-    std::mutex _mtx; // æ¡¶é”
+	std::mutex mtx;//¶à¸öÏß³Ì·ÃÎÊµ½CentralCacheÖĞµÄÍ¬Ò»¸öSpanListÊ±ĞèÒª¼ÓËø
 };

@@ -1,71 +1,18 @@
 #pragma once
-#include <cassert>
-#include <cstdio>
-#include <stdlib.h>
-static inline void *&NextObj(void *obj) {
-    return *(void **)obj;
-}
-// ç®¡ç†åˆ‡åˆ†å¥½çš„å°å¯¹è±¡çš„è‡ªç”±é“¾è¡¨
+#include<cassert>
+#include<iostream>
+#include"SystemAlloc.h"
 class FreeList {
 public:
-    // å°†é‡Šæ”¾çš„å¯¹è±¡å¤´æ’åˆ°è‡ªç”±é“¾è¡¨
-    void Push(void *obj) {
-        assert(obj);
-
-        // å¤´æ’
-        NextObj(obj) = _freeList;
-        _freeList = obj;
-        _size++;
-    }
-    // ä»è‡ªç”±é“¾è¡¨å¤´éƒ¨è·å–ä¸€ä¸ªå¯¹è±¡
-    void *Pop() {
-        assert(_freeList);
-
-        // å¤´åˆ 
-        void *obj = _freeList;
-        _freeList = NextObj(_freeList);
-        _size--;
-
-        return obj;
-    }
-    // æ’å…¥ä¸€æ®µèŒƒå›´çš„å¯¹è±¡åˆ°è‡ªç”±é“¾è¡¨
-    void PushRange(void *start, void *end, size_t n) {
-        assert(start);
-        assert(end);
-
-        // å¤´æ’
-        NextObj(end) = _freeList;
-        _freeList = start;
-        _size += n;
-    }
-    // ä»è‡ªç”±é“¾è¡¨è·å–ä¸€æ®µèŒƒå›´çš„å¯¹è±¡
-    void PopRange(void *&start, void *&end, size_t n) {
-        assert(n <= _size);
-
-        // å¤´åˆ 
-        start = _freeList;
-        end = start;
-        for (size_t i = 0; i < n - 1; i++) {
-            end = NextObj(end);
-        }
-        _freeList = NextObj(end); // è‡ªç”±é“¾è¡¨æŒ‡å‘endçš„ä¸‹ä¸€ä¸ªå¯¹è±¡
-        NextObj(end) = nullptr;   // å–å‡ºçš„ä¸€æ®µé“¾è¡¨çš„è¡¨å°¾ç½®ç©º
-        _size -= n;
-    }
-    bool Empty() {
-        return _freeList == nullptr;
-    }
-
-    size_t &MaxSize() {
-        return _maxSize;
-    }
-
-    size_t Size() {
-        return _size;
-    }
-
+	void Push(void* obj);//²åÈë¶ÔÏóµ½×ÔÓÉÁ´±í
+	void* Pop();//´Ó×ÔÓÉÁ´±íÖĞÈ¡³ö¶ÔÏó
+	bool Empty();
+	void PushRange(void* start, void* end,size_t size);//size±íÊ¾PushRangeµÄ¸öÊı
+	size_t Size();
+	void PopRange(void*& start, void*& end, size_t popsize);
+public:
+	size_t applycnt = 1;//ÉêÇë¶ÔÏóµÄ¸öÊı(Âı¿ªÊ¼µÄ·´À¡µ÷½ÚËã·¨)
 private:
-    void *_freeList = nullptr; // è‡ªç”±é“¾è¡¨
-    size_t _maxSize = 1;
-    size_t _size = 0;
+	size_t size = 0;
+	void* m_freelist = nullptr;
 };

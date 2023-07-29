@@ -1,38 +1,53 @@
 #pragma once
-#include "Common.h"
-#include "FreeList.h"
-#include "System.h"
-template <class T>
+#include<iostream>
+#include<algorithm>
+#include"SystemAlloc.h"
+using std::cout;
+using std::endl;
+namespace TestStruct {
+	struct TreeNode {
+		TreeNode* left = nullptr;
+		TreeNode* right = nullptr;
+		int val = 0;
+		TreeNode() {
+			//cout << "TreeNode construct" << endl;
+		}
+		~TreeNode() {
+			//cout << "TreeNode destruct" << endl;
+		}
+	};
+}
+template<typename OBJ>
 class ObjectPool {
 public:
-    T *New() {
-        T *ans = nullptr;
-        if (_freeList != nullptr) {
-            ans = reinterpret_cast<T *>(_freeList);
-            _freeList = NextObj(_freeList);
-            new (ans) T; // æ˜¾ç¤ºè°ƒç”¨æ„é€ å‡½æ•°
-            return ans;
-        }
-        size_t size = max(sizeof(void *), sizeof(T));
-        if (_remainBytes < size) {
-            _memory = static_cast<char *>(SystemAlloc(NPAGES - 1)); // å‘OSç”³è¯·128é¡µ
-            _remainBytes = (NPAGES - 1) << PAGE_SHIFT;
-        }
-        ans = reinterpret_cast<T *>(_memory);
-        _memory += size;
-        _remainBytes -= size;
-        new (ans) T;
-        return ans;
-    }
-    void Delete(T *obj) {
-        assert(obj);
-        obj->~T(); // ææ„å‡½æ•°
-        NextObj(obj) = _freeList;
-        _freeList = obj;
-    }
-
+	//¶¨³¤ÄÚ´æ³Ø£¨¶ÔÏó³Ø£©
+	OBJ* New() {
+		if (m_freelist) {
+			OBJ* obj = (OBJ*)m_freelist;
+			new(obj)OBJ;//replacement new£¬µ÷ÓÃ¹¹Ôìº¯Êı
+			m_freelist = NextObj(m_freelist);
+			return obj;
+		}
+		size_t size = max(sizeof(void*), sizeof(OBJ));
+		if (m_remainbytes < size) {
+			m_memory = (char*)SystemAlloc(128);
+			m_remainbytes = 128 << 13;
+			return New();
+		}
+		//ÓĞ×ã¹»µÄ¿Õ¼ä
+		OBJ* obj = (OBJ*)m_memory;
+		new(obj)OBJ;//µ÷ÓÃ¹¹Ôìº¯Êı
+		m_memory += size;
+		m_remainbytes -= size;
+		return obj;
+	}
+	void Delete(OBJ* obj) {
+		obj->~OBJ();//µ÷ÓÃÎö¹¹º¯Êı
+		NextObj(obj) = m_freelist;
+		m_freelist = obj;
+	}
 private:
-    void *_freeList = nullptr;
-    char *_memory = nullptr;
-    size_t _remainBytes = 0;
+	char* m_memory = nullptr;//Ö¸Ïò´ó¿éÄÚ´æ
+	void* m_freelist = nullptr;//Ö¸ÏòÊÍ·ÅµÄÄÚ´æ¿é
+	size_t m_remainbytes = 0;//´ó¿éÄÚ´æÊ£Óà´óĞ¡
 };

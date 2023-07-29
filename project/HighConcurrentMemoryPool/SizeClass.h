@@ -1,72 +1,25 @@
 #pragma once
-#include "Common.h"
+#include<assert.h>
+#include<algorithm>
+#define PAGE_SHIFT 13 //2^13=8KB
+#define MAXBYTES 256*1024
+/*
+¶ÔÆë¹æÔò:
+×Ö½ÚÊı					¶ÔÆëÊı			¹şÏ£Í°ÏÂ±ê
+[1,128]					8bytes			[0,16)
+[129,1024]				16bytes			[16,72)
+[1025,8*1024]			128bytes		[72,128)
+[8*1024+1,64*1024]		1024bytes		[128,184)
+[64*1024+1,256*1024]	8*1024bytes		[184,208)
+*/
 class SizeClass {
 public:
-    // è®¡ç®—sizeå¯¹é½åçš„å¤§å°
-    static size_t RoundUp(size_t size) {
-        if (size <= 128) {
-            return RoundUpSubFunc(size, 8); //[1,128]->8å­—èŠ‚å¯¹é½
-        } else if (size <= 1024) {
-            return RoundUpSubFunc(size, 16);
-        } else if (size <= 8 * 1024) {
-            return RoundUpSubFunc(size, 128);
-        } else if (size <= 64 * 1024) {
-            return RoundUpSubFunc(size, 1024);
-        } else {
-            return RoundUpSubFunc(size, 1 << PAGE_SHIFT); // å¤§äº64KB,æŒ‰ç…§é¡µ(8KB)å¯¹é½
-        }
-        return -1;
-    }
-    // è®¡ç®—åœ¨å“ªä¸€ä¸ªæ¡¶
-    static size_t Index(size_t size) {
-        static size_t groupArray[4] = {16, 56, 56, 56}; // ä¿å­˜æ¯ä¸€ä¸ªåŒºé—´æ¡¶çš„æ•°ç›®
-        if (size <= 128) {
-            return IndexSubFunc(size, 3); // 2^3=8
-        } else if (size <= 1024) {
-            // 2^4=16,16å­—èŠ‚å¯¹é½
-            return IndexSubFunc(size - 128, 4) + groupArray[0];
-        } else if (size <= 8 * 1024) {
-            return IndexSubFunc(size - 1024, 7) + groupArray[0] + groupArray[1];
-        } else if (size <= 64 * 1024) {
-            return IndexSubFunc(size - 8 * 1024, 10) + groupArray[0] + groupArray[1] + groupArray[2];
-        } else if (size <= 256 * 1024) {
-            return IndexSubFunc(size - 64 * 1024, 13) + groupArray[0] + groupArray[1] + groupArray[2] + groupArray[3];
-        } else {
-            assert(false);
-            return -1;
-        }
-        return -1;
-    }
-    // threadcacheä¸€æ¬¡å‘centralcacheè¦å¤šå°‘ä¸ª,å–min(NumMoveSize,maxSize)
-    static size_t NumMoveSize(size_t size) {
-        assert(size > 0);
-        size_t num = MAX_BYTES / size; // æœ€å¤§ä¸ªæ•°
-        if (num < 2) {
-            return 2;
-        }
-        if (num > 512) {
-            return 512;
-        }
-        return num;
-    }
-    // centralcacheæ‰¾pagecacheè¦å‡ é¡µ
-    static size_t NumMovePage(size_t size) {
-        size_t num = NumMoveSize(size); // æœ€å¤§ä¸ªæ•°
-        size_t nPage = num * size;      // æœ€å¤§æ€»å¤§å°
-        nPage >>= PAGE_SHIFT;           // é¡µæ•°
-        if (nPage == 0) {
-            nPage = 1;
-        }
-        return nPage;
-    }
-    static size_t RoundUpSubFunc(size_t size, size_t alignnum) {
-        // return size % alignnum == 0 ? size : (size / alignnum + 1) * alignnum;//ä¸€èˆ¬å†™æ³•
-        return ((size + alignnum - 1) & ~(alignnum - 1)); // ä½è¿ç®—
-    }
-    static size_t IndexSubFunc(size_t size, size_t alignnum_shift) {
-        // 2^alignnum_shift=å¯¹é½æ•°
-        // return size % (size_t(pow(2, alignnum_shift))) == 0 ? size / (size_t(pow(2, alignnum_shift))) - 1 : size / (size_t(pow(2, alignnum_shift)));//ä¸€èˆ¬å†™æ³•
-        // ä½è¿ç®—
-        return ((size + (1 << alignnum_shift) - 1) >> alignnum_shift) - 1;
-    }
+	static size_t Align(size_t size, size_t alignnum);
+	static int Index(size_t size, int alignshift);//2^alignshift=¶ÔÆëÊı,¶ÔÆëÊıÊÇ2µÄ´Î·½
+	//¶ÔÆëÒÔºóµÄ×Ö½ÚÊı
+	static size_t AlignedSize(size_t size);
+	//¹şÏ£Í°ÏÂ±ê
+	static size_t HashBucketIndex(size_t size);
+	static size_t ApplyCnt(size_t alignsize);//ÉêÇëÊıÁ¿µÄÉÏÏŞºÍÏÂÏŞ
+	static size_t ApplyPageNumber(size_t alignsize);//CentralCacheÏòPageCache½øĞĞÉêÇëÊ±,ĞèÒªÉêÇë¶àÉÙÒ³
 };

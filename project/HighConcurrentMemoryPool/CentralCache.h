@@ -1,31 +1,20 @@
 #pragma once
-#include "Span.h"
-#include "Common.h"
-// å•ä¾‹æ¨¡å¼
+#include"Span.h"
+#include"SystemAlloc.h"
+#include"PageCache.h"
+#include"SizeClass.h"
+#include<iostream>
+#define NSPANLISTS 208 //CentralCache¹şÏ£Í°µÄ½á¹¹ÓëThreadCacheÒ»ÖÂ
 class CentralCache {
 public:
-    // æä¾›ä¸€ä¸ªå…¨å±€è®¿é—®ç‚¹
-    static CentralCache *GetInstance() {
-        return &_sInst;
-    }
-
-    // ä»central cacheè·å–ä¸€å®šæ•°é‡çš„å¯¹è±¡ç»™thread cache
-    size_t FetchRangeObj(void *&start, void *&end, size_t n, size_t size);
-
-    // è·å–ä¸€ä¸ªéç©ºçš„span
-    Span *GetOneSpan(SpanList &spanList, size_t size);
-
-    // å°†ä¸€å®šæ•°é‡çš„å¯¹è±¡è¿˜ç»™å¯¹åº”çš„span
-    void ReleaseListToSpans(void *start, size_t size);
-
+	static CentralCache* getInstance();//»ñÈ¡µ¥Àı¶ÔÏó
+	size_t FetchRangeObject(void*&start, void*&end,int index,size_t alignsize,int num);//´ÓSpanÖĞ»ñÈ¡Ò»¶¨ÊıÁ¿µÄ¶ÔÏó
+	Span* getSpan(SpanList& spanlist, size_t alignsize);
+	void RecycleMemory(int index,void* start,void* end,size_t mem_size);
 private:
-    SpanList _spanLists[NFREELISTS];
-
-private:
-    CentralCache() // æ„é€ å‡½æ•°ç§æœ‰
-    {
-    }
-    CentralCache(const CentralCache &) = delete; // é˜²æ‹·è´
-
-    static CentralCache _sInst;
+	CentralCache()=default;
+	CentralCache(const CentralCache&) = delete;
+	CentralCache& operator=(const CentralCache&) = delete;
+	SpanList spanlists[NSPANLISTS];
+	static CentralCache instance;//µ¥ÀıÄ£Ê½
 };

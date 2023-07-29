@@ -1,29 +1,17 @@
 #pragma once
-#include "Common.h"
-#include "SizeClass.h"
-#include "FreeList.h"
+#include"FreeList.h"
+#include"SizeClass.h"
+#include"CentralCache.h"
+#include<algorithm>
+#define NFREELISTS 208 //Ïß³Ì»º´æÖĞÓĞ208¸ö¹şÏ£Í°
+#define MAX_BYTES 256*1024 //Ïß³Ì»º´æÖĞÔÊĞíÉêÇëµÄ×î´óÄÚ´æ´óĞ¡Îª256KB
 class ThreadCache {
 public:
-    // ç”³è¯·å†…å­˜å¯¹è±¡
-    void *Allocate(size_t size);
-
-    // é‡Šæ”¾å†…å­˜å¯¹è±¡
-    void Deallocate(void *ptr, size_t size);
-
-    // ä»ä¸­å¿ƒç¼“å­˜è·å–å¯¹è±¡
-    void *FetchFromCentralCache(size_t index, size_t size);
-
-    // é‡Šæ”¾å¯¹è±¡å¯¼è‡´é“¾è¡¨è¿‡é•¿ï¼Œå›æ”¶å†…å­˜åˆ°ä¸­å¿ƒç¼“å­˜
-    void ListTooLong(FreeList &list, size_t size);
-
+	void DeAlloc(void* obj, size_t size);//ÊÍ·Å¶ÔÏó
+	void* Alloc(size_t size);
+	void* FetchFromCentralCache(int index, size_t alignsize);
+	void giveBackToCentralCache(FreeList& list, size_t alignsize);
 private:
-    FreeList _freeLists[NFREELISTS]; // å“ˆå¸Œæ¡¶
+	FreeList freelists[NFREELISTS];//Ïß³Ì»º´æÊÇ¹şÏ£Í°½á¹¹
 };
-
-// TLS - Thread Local Storage
-#ifdef _WIN32
-static _declspec(thread) ThreadCache *pTLSThreadCache = nullptr;
-#endif
-#ifdef __unix__
-static __thread ThreadCache *pTLSThreadCache = nullptr;
-#endif
+extern thread_local ThreadCache* threadTLS;

@@ -1,6 +1,0 @@
-syntax="proto3";
-message people{
-    reserved 1,5 to 100;
-    int32 age=3;
-    string name=2;
-}

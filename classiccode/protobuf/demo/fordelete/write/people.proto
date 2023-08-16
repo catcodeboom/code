@@ -1,5 +1,0 @@
-syntax="proto3";
-message people{
-    int32 birthday=1;
-    string name=2;
-}

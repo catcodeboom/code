@@ -1,5 +1,0 @@
-syntax="proto3";
-package slowstep;
-message contact{
-    repeated string peoples=1;
-}

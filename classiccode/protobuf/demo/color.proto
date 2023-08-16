@@ -1,7 +1,0 @@
-syntax="proto3";
-package colorspace;
-enum color{
-    RED=0;
-    BLUE=1;
-    DARK=2;
-}

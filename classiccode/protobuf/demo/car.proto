@@ -1,6 +1,0 @@
-syntax="proto3";
-import "color.proto";
-package carspace;
-message car{
-    colorspace.color car_color=1;
-}

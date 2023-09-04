@@ -32,7 +32,7 @@ bool TCPServer::Bind(uint16_t port) {
 bool TCPServer::Listen(int QueueMaxLen) {
     return listen(sock, QueueMaxLen) == 0;
 }
-int TCPServer::Accept(string* ip, uint16_t* port) {
+int TCPServer::Accept(string* ip, uint16_t* port) {//accept:将底层建立好的连接获取上来
     struct sockaddr_in clientAddr;
     memset(&clientAddr, 0, sizeof(clientAddr));
     socklen_t len = sizeof(clientAddr);

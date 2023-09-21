@@ -1,5 +1,5 @@
-#include"Code02_heap.h"
+#include "Code05_lruCache.h"
 int main() {
-    Code02_heap::Run();
+    Code05_lru<int, int>::Run();
     return 0;
 }

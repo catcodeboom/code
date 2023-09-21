@@ -1,5 +1,5 @@
-#include "Code05_lruCache.h"
+#include "Code06_graph.h"
 int main() {
-    Code05_lru<int, int>::Run();
+    Code06_graph::Run();
     return 0;
 }
